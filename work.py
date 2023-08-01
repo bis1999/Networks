@@ -66,6 +66,68 @@ def create_training_df(G_train,train_links,missinglinks):
     
     return df
 
+def create_cross_validation(top_df_tr,col):
+    feature_set = ['score_jaccard', 'adamic_adar_score', 'resource_allocation',
+       'preferential_attachment', 'num_of_neigbours', 'degree_1', 'degree_2',
+       'tri_1', 'tri_2', 'pr_1', 'pr_2', 'clust_1', 'clust_2',
+       'aveg_neigh_deg_1', 'aveg_neigh_deg_2', 'degree_centrality_1',
+       'degree_centrality_2', 'closeness_centrality_1',
+       'closeness_centrality_2']
+    
+    
+    
+    
+    
+    y_train_orig = np.array(top_df_tr[col])
+    X_train_orig = top_df_tr
+    
+
+
+    skf = StratifiedKFold(n_splits=5,shuffle=True)
+    skf.get_n_splits(X_train_orig, y_train_orig)
+
+    nFold = 1 
+
+    X_train_cv = {}
+    y_train_cv = {}
+    X_test_cv = {}
+    y_test_cv = {}
+
+
+    for train_index, test_index in skf.split(X_train_orig, y_train_orig):
+
+        cv_train = list(train_index)
+        cv_test = list(test_index)
+
+
+        train = X_train_orig.iloc[np.array(cv_train)]
+        test = X_train_orig.iloc[np.array(cv_test)]
+
+        y_train = train["Link_present"]
+        y_test = test["Link_present"]
+
+
+        X_train = train.loc[:,feature_set]
+        X_test = test.loc[:,feature_set]
+
+        X_test.fillna(X_test.mean(), inplace=True)
+        X_train.fillna(X_train.mean(), inplace=True)
+
+        sm = RandomOverSampler(random_state=42)
+        X_train, y_train = sm.fit_resample(X_train, y_train)
+
+        X_train_cv[nFold] = X_train
+        y_train_cv[nFold] = y_train
+        X_test_cv[nFold] = X_test
+        y_test_cv[nFold] = y_test
+
+
+
+        #print( "created fold ",nFold, " ...")
+
+        nFold = nFold + 1
+    return X_train_cv,y_train_cv,X_test_cv,y_test_cv
+
 
 
 
@@ -338,13 +400,3 @@ def process_index(index):
     df_ho_top.to_csv(os.path.join(index_dir, 'df_ho_top.csv'), index=False)
     df_tr_top.to_csv(os.path.join(index_dir, 'df_tr_top.csv'), index=False)
 
-if __name__ == "__main__":
-    # Assuming you have a list of indices
-    index_list = network_index # Replace with your list of indices
-
-    # Determine the number of processes to use (use all available CPU cores)
-    num_processes = cpu_count()
-
-    # Create a Pool of processes
-    with Pool(processes=num_processes) as pool:
-        list(tqdm(pool.imap(process_index, index_list), total=len(index_list)))

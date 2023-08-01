@@ -1,7 +1,7 @@
 import pandas as pd 
 import numpy as np 
 import networkx as nx 
-
+from tqdm import tqdm 
 from sklearn.metrics import roc_auc_score
 
 from sklearn.metrics import  auc
@@ -312,7 +312,7 @@ def create_g_from_df(index):
 network_index = df["network_index"]
 
 
-network_index = network_index[:50]
+network_index = network_index[:10]
 
 
 

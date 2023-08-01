@@ -325,6 +325,7 @@ network_index = network_index[:10]
 
 
 def process_index(index):
+    os.mkdir("Network_datasest/")
     index_dir = "Network_datasest/{}_index".format(index)
     os.mkdir(index_dir)
 

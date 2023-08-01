@@ -319,6 +319,11 @@ network_index = network_index[:10]
 
 
 
+
+    # Assuming you have a list of indices
+
+
+
 def process_index(index):
     index_dir = "Network_datasest/{}_index".format(index)
     os.mkdir(index_dir)
@@ -332,4 +337,13 @@ def process_index(index):
     df_ho_top.to_csv(os.path.join(index_dir, 'df_ho_top.csv'), index=False)
     df_tr_top.to_csv(os.path.join(index_dir, 'df_tr_top.csv'), index=False)
 
+if __name__ == "__main__":
     # Assuming you have a list of indices
+    index_list = network_index # Replace with your list of indices
+
+    # Determine the number of processes to use (use all available CPU cores)
+    num_processes = cpu_count()
+
+    # Create a Pool of processes
+    with Pool(processes=num_processes) as pool:
+        list(tqdm(pool.imap(process_index, index_list), total=len(index_list)))
